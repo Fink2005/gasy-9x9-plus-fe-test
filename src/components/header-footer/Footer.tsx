@@ -5,8 +5,7 @@ import HumanIcon from '@/libs/shared/icons/Human';
 import NotesIcon from '@/libs/shared/icons/Notes';
 import QuestionIcon from '@/libs/shared/icons/Question';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 const tabBar = [
   { icon: HouseIcon, title: 'Trang chủ', to: '/' },
@@ -18,17 +17,6 @@ const tabBar = [
 
 export function Footer() {
   const pathName = usePathname();
-  const router = useRouter();
-
-  // Prefetch tất cả route ngay khi footer mount
-  useEffect(() => {
-    tabBar.forEach((item) => {
-      if (item.to !== pathName) {
-        router.prefetch(item.to);
-      }
-    });
-  }, [router, pathName]);
-
   if (pathName.includes('game') || pathName.includes('info')) {
     return null;
   }
@@ -44,6 +32,7 @@ export function Footer() {
           <Link
             href={item.to}
             key={item.title}
+            prefetch
             className={`footer-items ${pathName === item.to ? '' : 'opacity-50'}`}
           >
             <Icon />

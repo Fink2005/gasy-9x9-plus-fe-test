@@ -4,7 +4,7 @@ import type { UserRanking } from '@/types/user';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-export const useUserRanking = (address = false, initialPage = 1) => {
+export const useUserRanking = (initialPage = 1) => {
   return useInfiniteQuery<UserRanking, Error>({
     queryKey: ['userRanking'],
     queryFn: async ({ pageParam = initialPage }): Promise<UserRanking> => {
@@ -21,7 +21,6 @@ export const useUserRanking = (address = false, initialPage = 1) => {
       }
       return response;
     },
-    enabled: !!address,
     initialPageParam: initialPage,
     throwOnError(error) {
       if (error instanceof ApiException) {

@@ -25,7 +25,7 @@ const RankingList = () => {
 
   const { ref, inView } = useInView();
 
-  const user = useUserRanking(!!address);
+  const user = useUserRanking();
   const { data, isSuccess, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = user;
   const dataRanking = data?.pages.flatMap(item => item.users);
   const dataUserTotal = data?.pages[0]?.pagination.totalItems || 0;
@@ -75,7 +75,7 @@ const RankingList = () => {
           <p className="text-shadow-custom text-xs">Tổng số điểm nhận được</p>
         </div>
         {
-          address && isSuccess && dataRanking?.map((player, index) => {
+          isSuccess && dataRanking?.map((player, index) => {
             const isSetRef = (index === indexItemShouldLoadMore) || (index === totalUserRanking);
             return (
               <div
