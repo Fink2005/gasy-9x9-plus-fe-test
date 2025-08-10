@@ -1,0 +1,62 @@
+{
+  // Editor settings
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": false,
+  "editor.autoIndent": "full",
+
+  // Search
+  "search.exclude": {
+    "package-lock.json": true
+  },
+
+  // TypeScript
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.autoImportSpecifierExcludeRegexes": [
+    "next/router",
+    "chai"
+  ],
+
+  // ESLint
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "html",
+    "markdown",
+    "json",
+    "jsonc",
+    "yaml",
+    "toml",
+    "xml",
+    "gql",
+    "graphql",
+    "astro",
+    "svelte",
+    "css",
+    "less",
+    "scss",
+    "pcss",
+    "postcss",
+    "github-actions-workflow"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.addMissingImports": "always",
+    "source.addMissingImports.ts": "always",
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.ts": "explicit",
+    "source.organizeImports": "explicit",
+    "source.sortImports": "explicit",
+    "source.removeUnusedImports": "explicit"
+  },
+
+  // Prettier (disabled in favor of ESLint)
+  "prettier.enable": false,
+
+  // I18n Ally
+  "i18n-ally.localesPaths": ["src/locales"],
+  "i18n-ally.keystyle": "nested"
+}
