@@ -18,6 +18,7 @@ import {
 // Minimal USDT ABI for approval
 import { handleRevalidateTag } from '@/app/actions/revalidation';
 import BoxDistributor from '@/contracts/BoxDistributor.json';
+import { isClient } from '@/libs/utils';
 import { Loader2 } from 'lucide-react';
 import Web3 from 'web3';
 
@@ -75,6 +76,16 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       return;
     }
 
+    if (isClient) {
+      const boxData = localStorage.getItem('boxData') ? JSON.parse(localStorage.getItem('boxData')!) : null;
+
+      localStorage.setItem('boxData', JSON.stringify({
+        ...(boxData && boxData),
+        isOpenedBox: true,
+        currentBox
+      }));
+    }
+
     try {
       setLoading(true);
       setIsOpen(false);
@@ -95,9 +106,17 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       const usdtContract = new web3.eth.Contract(usdtAbi as any, usdtAddress);
 
       if (usdtContract.methods.approve) {
-        const hax = await usdtContract.methods.approve(contractAddress, approveAmount).send({ from: sender });
+        let hax;
 
-        const res = await boxRequest.boxApprove(hax.transactionHash, boxNumber);
+        const txHashStored = JSON.parse(localStorage.getItem('boxData') || '')?.txHash;
+        if (!txHashStored) {
+          hax = await usdtContract.methods.approve(contractAddress, approveAmount).send({ from: sender });
+        }
+
+        const transactionHash = hax?.transactionHash || txHashStored;
+
+        const res = await boxRequest.boxApprove(transactionHash, boxNumber);
+
         if (!res) {
           throw new Error('Box approval failed');
         }
@@ -154,6 +173,7 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       }
 
       setIsConfirm(true);
+      localStorage.removeItem('boxData');
     } catch (err) {
       setIsOpen(false);
       console.error('Approve error:', err);
@@ -164,7 +184,6 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       setIsOpen(true);
     }
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger
