@@ -81,7 +81,6 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
 
       localStorage.setItem('boxData', JSON.stringify({
         ...(boxData && boxData),
-        isOpenedBox: true,
         currentBox
       }));
     }
@@ -163,17 +162,16 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
         if (receiptRes.status) {
           await boxRequest.boxOpen(response.transactionHash as string);
           toast.success('Mở box thành công!');
+          localStorage.removeItem('boxData');
         } else {
           toast.error('Giao dịch thất bại hoặc bị huỷ.');
         }
-        handleRevalidateTag('get-me');
-        router.refresh();
       } else {
         throw new Error('approve method is undefined on the contract');
       }
-
       setIsConfirm(true);
-      localStorage.removeItem('boxData');
+      handleRevalidateTag('get-me');
+      router.refresh();
     } catch (err) {
       setIsOpen(false);
       console.error('Approve error:', err);

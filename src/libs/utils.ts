@@ -37,7 +37,9 @@ export const handleClipboardCopy = (data: string | number) => {
   navigator.clipboard.writeText(data.toString());
   toast.success('Đã sao chép địa chỉ ví');
 };
-
+export const delay = (ms: number): Promise<void> => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
 export const isClient = typeof window !== 'undefined';
 export const formatDate = (date: Date) => {
   return date.toLocaleDateString('vi-VN', {
