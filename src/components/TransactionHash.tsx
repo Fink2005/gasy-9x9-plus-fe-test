@@ -1,9 +1,9 @@
+/* eslint-disable no-console */
 /* eslint-disable react-hooks/exhaustive-deps */
 
 'use client';
 
 import useGetCookie from '@/hooks/useGetCookie';
-import { isClient } from '@/libs/utils';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import web3, { Web3 } from 'web3';
@@ -13,6 +13,7 @@ import { handleRevalidateTag } from '@/app/actions/revalidation';
 import { ApiException } from '@/app/http/apiRequest';
 import { boxRequest } from '@/app/http/requests/box';
 import BoxDistributor from '@/contracts/BoxDistributor.json';
+import { isClient } from '@/libs/utils';
 
 const contractAddress = '0x3A87e9E8616957eA2F4b8960CFa333fCF5887589';
 // const USDT_CONTRACT_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
@@ -74,6 +75,7 @@ const TransactionHash = () => {
       );
 
       const data = await response.json();
+      const openTransactionLength = data.result.filter((item: { methodId: string }) => item.methodId === openBoxMethodId).length;
       if (data.status === '1') {
         // Find the first transaction that matches openBox method
         for (const tx of data.result) {
@@ -85,6 +87,7 @@ const TransactionHash = () => {
           // Check if transaction calls openBox method
           if (tx.input && tx.input.startsWith(openBoxMethodId)) {
             return {
+              openTransactionLength,
               transactionHash: tx.hash,
             };
           }
@@ -125,6 +128,7 @@ const TransactionHash = () => {
   };
 
   useEffect(() => {
+    console.log('vao');
     let intervalId: NodeJS.Timeout | null = null;
 
     (async () => {
@@ -136,51 +140,55 @@ const TransactionHash = () => {
         const boxData = localStorage.getItem('boxData') ? JSON.parse(localStorage.getItem('boxData')!) : null;
         const isApproving = await getAllowanceEtherscan(address, contractAddress);
         try {
-          const handleRefreshOpenBox = async () => {
-            const onChainCurrentBox = Number((await contract.methods.boxesOpened!(address).call()));
-            if (onChainCurrentBox === boxData.currentBox) {
-              try {
-                const openBoxHash = await getLatestOpenBoxTransaction(address);
-                if (!openBoxHash) {
-                  return;
-                }
-                boxRequest.boxOpen(openBoxHash.transactionHash);
-                clearInterval(intervalId as unknown as number);
-                await handleRevalidateTag('get-me');
-                router.refresh();
-                localStorage.removeItem('boxData');
-              } catch (error) {
-                if (error instanceof ApiException) {
-                  if (error.status === 400) {
-                    handleRefreshOpenBox();
-                  } else {
-                    clearInterval(intervalId as unknown as number);
-                  }
-                }
-              }
-            }
-          };
-          intervalId = setInterval(handleRefreshOpenBox, 2000);
           if (isApproving) {
             const approveHash = await getLatestApproveTransaction(address);
             localStorage.setItem('boxData', JSON.stringify({
               ...boxData,
               txHash: approveHash,
             }));
+          } else {
+            const handleRefreshOpenBox = async () => {
+              const onChainCurrentBox = Number((await contract.methods.boxesOpened!(address).call()));
+              const openBoxHash = await getLatestOpenBoxTransaction(address);
+              console.log(onChainCurrentBox, boxData?.currentBox, openBoxHash?.openTransactionLength);
+
+              if (onChainCurrentBox === boxData?.currentBox && onChainCurrentBox === openBoxHash?.openTransactionLength) {
+                console.log('123');
+                try {
+                  if (!openBoxHash) {
+                    return;
+                  }
+                  boxRequest.boxOpen(openBoxHash.transactionHash);
+                  clearInterval(intervalId as unknown as number);
+                  await handleRevalidateTag('get-me');
+                  router.refresh();
+                  localStorage.removeItem('boxData');
+                } catch (error) {
+                  if (error instanceof ApiException) {
+                    if (error.status === 400) {
+                      handleRefreshOpenBox();
+                    } else {
+                      clearInterval(intervalId as unknown as number);
+                    }
+                  }
+                }
+              }
+            };
+            console.log('voo');
+            intervalId = setInterval(handleRefreshOpenBox, 2000);
           }
         } catch (error) {
           console.error(error);
         }
       }
     })();
-
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [pathname]);
-  return undefined;
+  }, [pathname, router]);
+  return null;
 };
 
 export default TransactionHash;
