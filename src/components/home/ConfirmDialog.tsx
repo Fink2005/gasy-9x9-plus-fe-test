@@ -174,14 +174,13 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       setIsConfirm(true);
       handleRevalidateTag('get-me');
       router.refresh();
+      setIsOpen(true);
     } catch {
       setIsOpen(false);
-      toast.error('Giao dịch thất bại hoặc bị huỷ.');
       window.location.reload();
       return;
     } finally {
       setLoading(false, boxNumber);
-      setIsOpen(true);
     }
   };
   return (

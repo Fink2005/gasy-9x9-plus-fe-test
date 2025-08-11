@@ -14,6 +14,7 @@ import { ApiException } from '@/app/http/apiRequest';
 import { boxRequest } from '@/app/http/requests/box';
 import BoxDistributor from '@/contracts/BoxDistributor.json';
 import useBox from '@/store/useBox';
+import { toast } from 'sonner';
 
 const contractAddress = '0x3A87e9E8616957eA2F4b8960CFa333fCF5887589';
 // const USDT_CONTRACT_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
@@ -33,6 +34,7 @@ const TransactionHash = () => {
   };
   const router = useRouter();
   const pathname = usePathname();
+
   async function getAllowanceEtherscan(owner: string, spender: string) {
     const methodId = '0xdd62ed3e'; // allowance(address,address)
 
@@ -58,6 +60,7 @@ const TransactionHash = () => {
       return 0;
     }
   }
+
   const MethodId = (type: 'openBox' | 'approve') => {
     // Your openBox function signature from the ABI
     const functionSignature = 'openBox(address[],uint256[],bytes)';
@@ -75,7 +78,7 @@ const TransactionHash = () => {
       );
 
       const data = await response.json();
-      const openTransactionLength = data.result.filter((item: { methodId: string }) => item.methodId === openBoxMethodId).length;
+      const openTransactionLength = data?.result?.filter((item: { methodId: string }) => item.methodId === openBoxMethodId).length;
       if (data.status === '1') {
         // Find the first transaction that matches openBox method
         for (const tx of data.result) {
@@ -103,6 +106,7 @@ const TransactionHash = () => {
       return null; // Explicitly return null in case of an error
     }
   };
+
   const getLatestApproveTransaction = async (address: string) => {
     const baseURL = 'https://api-sepolia.etherscan.io/api';
     const approveMethodId = MethodId('approve');
@@ -128,17 +132,16 @@ const TransactionHash = () => {
   };
 
   useEffect(() => {
-    console.log('vao');
     let intervalId: NodeJS.Timeout | null = null;
 
-    (async () => {
-      console.log('xin chao', localStorage.getItem('boxData') && TRANSACTION_CHECKING_ROUTE.includes(pathname));
-      if (localStorage.getItem('boxData') && TRANSACTION_CHECKING_ROUTE.includes(pathname)) {
+    const timer = setTimeout(async () => {
+      const boxDataString = localStorage.getItem('boxData');
+      const isOnValidRoute = TRANSACTION_CHECKING_ROUTE.includes(pathname);
+      if (boxDataString && isOnValidRoute) {
         const { userAddress: address } = await getAddress();
         const web3 = new Web3(window.ethereum); // or your provider
         const contract = new web3.eth.Contract(BoxDistributor, contractAddress);
-
-        const boxData = localStorage.getItem('boxData') ? JSON.parse(localStorage.getItem('boxData')!) : null;
+        const boxData = JSON.parse(boxDataString);
         const isApproving = await getAllowanceEtherscan(address, contractAddress);
         try {
           if (isApproving) {
@@ -152,6 +155,7 @@ const TransactionHash = () => {
               const onChainCurrentBox = Number((await contract.methods.boxesOpened!(address).call()));
               const openBoxHash = await getLatestOpenBoxTransaction(address);
               console.log(onChainCurrentBox, boxData?.currentBox, openBoxHash?.openTransactionLength);
+
               if (onChainCurrentBox === boxData?.currentBox && onChainCurrentBox === openBoxHash?.openTransactionLength) {
                 console.log('123');
                 setLoading(true, boxData?.currentBox);
@@ -177,20 +181,23 @@ const TransactionHash = () => {
                 }
               }
             };
-            console.log('voo');
+
             intervalId = setInterval(handleRefreshOpenBox, 2000);
           }
-        } catch (error) {
-          console.error(error);
+        } catch {
+          toast.error('Có lỗi xảy ra trong quá trình kiểm tra giao dịch. Vui lòng liên hệ với admin nếu lỗi vẫn tiếp diễn.');
         }
       }
-    })();
+    }, 100);
+
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
+      clearTimeout(timer);
     };
   }, [pathname, router]);
+
   return null;
 };
 
