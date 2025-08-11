@@ -3,19 +3,22 @@ import { devtools } from 'zustand/middleware';
 
 type StoreState = {
   // State
-  isLoading: boolean;
+  loadingItems: {
+    [boxNumber: number]: boolean;
+  };
 
   // Actions
-  setLoading: (loading: boolean) => void;
-
+  setLoading: (loading: boolean, boxNumber: number) => void;
 };
 
 const useBox = create<StoreState>()(
   devtools(
     set => ({
       // Initial state
-      isLoading: false,
-      setLoading: (isLoading: boolean) => set({ isLoading }),
+      loadingItems: {},
+      setLoading: (isLoading: boolean, boxNumber: number) => set({ loadingItems: {
+        [boxNumber]: isLoading,
+      } }),
     }),
   )
 );

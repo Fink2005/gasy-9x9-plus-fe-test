@@ -13,7 +13,7 @@ import { handleRevalidateTag } from '@/app/actions/revalidation';
 import { ApiException } from '@/app/http/apiRequest';
 import { boxRequest } from '@/app/http/requests/box';
 import BoxDistributor from '@/contracts/BoxDistributor.json';
-import { isClient } from '@/libs/utils';
+import useBox from '@/store/useBox';
 
 const contractAddress = '0x3A87e9E8616957eA2F4b8960CFa333fCF5887589';
 // const USDT_CONTRACT_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
@@ -25,7 +25,7 @@ const TRANSACTION_CHECKING_ROUTE = ['/', '/gold-mining', '/numerology', '/missio
 
 const TransactionHash = () => {
   const { handleGetCookie } = useGetCookie();
-
+  const { setLoading } = useBox();
   const getAddress = async () => {
     const authData = await handleGetCookie('authData');
     const userAddress = (authData as { address: string })?.address;
@@ -132,7 +132,8 @@ const TransactionHash = () => {
     let intervalId: NodeJS.Timeout | null = null;
 
     (async () => {
-      if (isClient && localStorage.getItem('boxData') && TRANSACTION_CHECKING_ROUTE.includes(pathname)) {
+      console.log('xin chao', localStorage.getItem('boxData') && TRANSACTION_CHECKING_ROUTE.includes(pathname));
+      if (localStorage.getItem('boxData') && TRANSACTION_CHECKING_ROUTE.includes(pathname)) {
         const { userAddress: address } = await getAddress();
         const web3 = new Web3(window.ethereum); // or your provider
         const contract = new web3.eth.Contract(BoxDistributor, contractAddress);
@@ -151,9 +152,9 @@ const TransactionHash = () => {
               const onChainCurrentBox = Number((await contract.methods.boxesOpened!(address).call()));
               const openBoxHash = await getLatestOpenBoxTransaction(address);
               console.log(onChainCurrentBox, boxData?.currentBox, openBoxHash?.openTransactionLength);
-
               if (onChainCurrentBox === boxData?.currentBox && onChainCurrentBox === openBoxHash?.openTransactionLength) {
                 console.log('123');
+                setLoading(true, boxData?.currentBox);
                 try {
                   if (!openBoxHash) {
                     return;
@@ -171,6 +172,8 @@ const TransactionHash = () => {
                       clearInterval(intervalId as unknown as number);
                     }
                   }
+                } finally {
+                  setLoading(false, boxData?.currentBox);
                 }
               }
             };

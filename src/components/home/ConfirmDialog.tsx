@@ -19,6 +19,7 @@ import {
 import { handleRevalidateTag } from '@/app/actions/revalidation';
 import BoxDistributor from '@/contracts/BoxDistributor.json';
 import { isClient } from '@/libs/utils';
+import useBox from '@/store/useBox';
 import { Loader2 } from 'lucide-react';
 import Web3 from 'web3';
 
@@ -50,9 +51,10 @@ type Props = {
 
 const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
   const [isConfirm, setIsConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const router = useRouter();
+  const { loadingItems, setLoading } = useBox();
+
   const handleOpenChange = (open: boolean) => {
     if ((!isOpenBox && boxNumber !== 1) && currentBox !== boxNumber) {
       toast.warning(`Bạn cần phải mở hộp ${currentBox}`);
@@ -67,7 +69,7 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
   const handleCancel = () => {
     setIsOpen(false);
     setIsConfirm(false);
-    setLoading(false);
+    setLoading(false, boxNumber);
   };
 
   const handleConfirm = async () => {
@@ -86,7 +88,7 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
     }
 
     try {
-      setLoading(true);
+      setLoading(true, boxNumber);
       setIsOpen(false);
       const web3 = new Web3(window.ethereum);
 
@@ -172,13 +174,13 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       setIsConfirm(true);
       handleRevalidateTag('get-me');
       router.refresh();
-    } catch (err) {
+    } catch {
       setIsOpen(false);
-      console.error('Approve error:', err);
       toast.error('Giao dịch thất bại hoặc bị huỷ.');
+      window.location.reload();
       return;
     } finally {
-      setLoading(false);
+      setLoading(false, boxNumber);
       setIsOpen(true);
     }
   };
@@ -187,7 +189,7 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       <DialogTrigger
         className={`${(boxNumber === 1 || isOpenBox || currentBox === boxNumber) ? 'button-base' : 'button-base-disabled'} text-white !py-1 font-[700] text-[11px] text-nowrap w-20`}
       >
-        {loading ? <Loader2 className="animate-spin size-4" /> : !isOpenBox ? 'Mở khóa' : 'Chi tiết'}
+        { loadingItems[boxNumber] ? <Loader2 className="animate-spin size-4" /> : !isOpenBox ? 'Mở khóa' : 'Chi tiết'}
       </DialogTrigger>
       <DialogContent className="confirm-dialog gap-3">
         <DialogHeader>
@@ -229,9 +231,9 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
             onClick={() => {
               !isConfirm ? handleConfirm() : router.push(`box/${boxNumber}`);
             }}
-            disabled={loading}
+            disabled={loadingItems[boxNumber]}
           >
-            {loading ? 'Đang xử lý...' : isConfirm ? 'Chi tiết' : 'Xác nhận'}
+            { loadingItems[boxNumber] ? 'Đang xử lý...' : isConfirm ? 'Chi tiết' : 'Xác nhận'}
           </Button>
         </div>
       </DialogContent>
