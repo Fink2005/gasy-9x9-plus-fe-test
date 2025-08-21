@@ -4,7 +4,7 @@ import useSafePalWallet from '@/hooks/useSafePalWallet';
 import SafePalIcon from '@/libs/shared/icons/SafePal';
 import { Loader2 } from 'lucide-react';
 
-export default function SafePal({ invitedBy }: { invitedBy: string | null }) {
+export default function SafePal({ invitedBy, spillover }: { invitedBy: string | null; spillover: string | null }) {
   const { safePalMethods, isConnecting } = useSafePalWallet();
   return (
     <main className="flex-1">
@@ -12,7 +12,7 @@ export default function SafePal({ invitedBy }: { invitedBy: string | null }) {
         className="button-login mt-[0.5rem] w-full"
 
         onClick={
-          async () => await safePalMethods.onConnectWallet(invitedBy)
+          async () => await safePalMethods.onConnectWallet(invitedBy, spillover)
 
         }
         disabled={isConnecting}

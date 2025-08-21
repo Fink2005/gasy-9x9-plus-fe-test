@@ -6,10 +6,10 @@ import Image from 'next/image';
 import { Suspense } from 'react';
 
 type Props = {
-  searchParams: Promise<{ invitedBy: string | null }>;
+  searchParams: Promise<{ invitedBy: string | null; spillover: string | null }>;
 };
 const login = async ({ searchParams }: Props) => {
-  const { invitedBy } = await searchParams;
+  const { invitedBy, spillover } = await searchParams;
   return (
     <div className="flex flex-col items-center relative pt-20">
       <>
@@ -20,7 +20,7 @@ const login = async ({ searchParams }: Props) => {
         <div className="bg-login-card w-full">
           <p className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#4EC1FF]  text-[1.375rem] font-[510] text-nowrap">Kết nối để bắt đầu hành trình</p>
           <Suspense fallback={<Loading />}>
-            <SafePal invitedBy={invitedBy} />
+            <SafePal invitedBy={invitedBy} spillover={spillover} />
           </Suspense>
         </div>
         { invitedBy && (

@@ -175,9 +175,10 @@ const ConfirmDialog = ({ boxNumber, isOpenBox, currentBox }: Props) => {
       handleRevalidateTag('get-me');
       router.refresh();
       setIsOpen(true);
-    } catch {
+    } catch (err) {
+      console.log(err);
       setIsOpen(false);
-      window.location.reload();
+      // window.location.reload();
       return;
     } finally {
       setLoading(false, boxNumber);

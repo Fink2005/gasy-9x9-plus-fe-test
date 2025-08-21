@@ -7,7 +7,7 @@ import { routing } from './libs/i18nRouting';
 const handleI18nRouting = createMiddleware(routing);
 
 const isProtectedPage = (pathname: string): boolean => {
-  return pathname.startsWith('/numerology') || pathname.startsWith('/numerology/result') || pathname === '/' || pathname.startsWith('/ranking') || pathname.startsWith('/gold-mining') || pathname.startsWith('/gold-mining/result') || pathname.startsWith('/box') || pathname.startsWith('/system-diagram');
+  return pathname.startsWith('/numerology') || pathname.startsWith('/numerology/result') || pathname.startsWith('/ranking') || pathname.startsWith('/gold-mining') || pathname.startsWith('/gold-mining/result') || pathname.startsWith('/box') || pathname.startsWith('/system-diagram');
 };
 
 const isAuthPage = (pathname: string): boolean => {
